@@ -128,7 +128,7 @@ class USB_otg : public USB_generic {
 		
 		void init() {
 			// Set PHYSEL.
-			otg.reg.GUSBCFG |= (1 << 6);
+			otg.reg.GUSBCFG |= (0 << 6);
 			
 			Time::sleep(10);
 			
@@ -139,7 +139,7 @@ class USB_otg : public USB_generic {
 			otg.reg.GAHBCFG = 0;
 			
 			// USB configuration
-			otg.reg.GUSBCFG = (1 << 30) | (0xf << 10) | (0 << 9) | (0 << 8) | (1 << 6);
+			otg.reg.GUSBCFG = (1 << 30) | (0xf << 10) | (0 << 9) | (0 << 8) | (0 << 6);
 			//                 FDMOD       TRDT          HNPCAP     SRPCAP     PHYSEL
 			
 			// interrupt mask
@@ -147,11 +147,11 @@ class USB_otg : public USB_generic {
 			//                 ENUMDNEM    USBRST      USBSUSPM    ESUSPM      SOFM       OTGINT     MMISM
 			
 			// device configuration
-			otg.dev_reg.DCFG = (1 << 2) | 3;
+			otg.dev_reg.DCFG = (1 << 2) | 0;
 			//                 NZLSOHSK   DSPD
 			
 			// core configuration
-			otg.reg.GCCFG = (1 << 19) | (1 << 16);
+			otg.reg.GCCFG = (1 << 19) | (0 << 16);
 			//               VBUSBSEN    PWRDWN
 			
 		}
@@ -163,7 +163,7 @@ class USB_otg : public USB_generic {
 			if(gintsts & (1 << 12)) {
 				usb_rblog.log("USB Reset");
 				
-				otg.dev_reg.DCFG = (1 << 2) | 3;
+				otg.dev_reg.DCFG = (1 << 2) | 0;
 				otg.dev_oep_reg[0].DOEPCTL = (1 << 27);
 				otg.dev_oep_reg[1].DOEPCTL = (1 << 27);
 				otg.dev_oep_reg[2].DOEPCTL = (1 << 27);
