@@ -12,7 +12,7 @@ void rcc_init() {
 	while(!(RCC.CR & 0x20000));
 	
 	// Configure and enable PLL.
-	RCC.CFGR = 0x1d0000;
+	RCC.CFGR = (4 << 18) | (1 << 16); // PLLMUL = x6, PLLSRC = HSE
 	RCC.CR |= 0x1000000;
 	while(!(RCC.CR & 0x2000000));
 	
