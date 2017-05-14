@@ -210,7 +210,7 @@ class USB_otg : public USB_generic {
 			return (otg.dev_iep_reg[ep].DIEPCTL & 0x80008000) == 0x8000;
 		}
 		
-		virtual void write(uint32_t ep, uint32_t* bufp, uint32_t len) {
+		virtual void hw_write(uint32_t ep, uint32_t* bufp, uint32_t len) override {
 			usb_rblog.log("Writing, ep=%d, len=%d", ep, len);
 			
 			otg.dev_iep_reg[ep].DIEPTSIZ = (1 << 19) | len;

@@ -15,6 +15,22 @@ struct desc_t {
 enum SetupStatus {Unhandled, Ok, Stall};
 enum class EPType {Control, Bulk, Interrupt, Isochronous};
 
+class USB_transfer {
+	friend class USB_generic;
+	
+	public:
+		uint8_t ep;
+		
+		uint8_t* buffer;
+		uint32_t buffer_len;
+		uint32_t xfer_len;
+		
+		USB_transfer(uint8_t ep, uint8_t* buffer, uint32_t len) : ep(ep), buffer(buffer), buffer_len(len), xfer_len(0) {}
+};
+
+static USB_transfer STATUS_IN(0x80, nullptr, 0);
+static USB_transfer DATA_IN(0x80, nullptr, 0);
+
 class USB_class_driver {
 	friend class USB_generic;
 	
@@ -41,8 +57,30 @@ class USB_generic {
 	public:
 		USB_generic(desc_t dev, desc_t conf) : dev_desc(dev), conf_desc(conf) {}
 		
+		virtual void submit_transfer(USB_transfer& transfer) {
+			uint8_t in = transfer.ep & 0x80;
+			uint8_t ep = transfer.ep & 0x7f;
+			
+			if(in) {
+				transfer.xfer_len = 0;
+				
+				while(transfer.buffer_len - transfer.xfer_len > 64) {
+					hw_write(ep, (uint32_t*)(transfer.buffer + transfer.xfer_len), 64);
+					transfer.xfer_len += 64;
+					
+					while(!ep_ready(ep));
+				}
+				
+				hw_write(ep, (uint32_t*)(transfer.buffer + transfer.xfer_len), transfer.buffer_len - transfer.xfer_len);
+				transfer.xfer_len += transfer.buffer_len - transfer.xfer_len;
+				
+			} else {
+				// TODO
+			}
+		}
+		
 		virtual bool ep_ready(uint32_t ep) = 0;
-		virtual void write(uint32_t ep, uint32_t* bufp, uint32_t len) = 0;
+		virtual void hw_write(uint32_t ep, uint32_t* bufp, uint32_t len) = 0;
 		virtual uint32_t read(uint32_t ep, uint32_t* bufp, uint32_t len) = 0;
 		virtual void hw_set_address(uint8_t addr) = 0;
 		virtual void hw_conf_ep(uint8_t ep, EPType type, uint32_t size) = 0;
@@ -85,25 +123,19 @@ class USB_generic {
 					return false;
 			}
 			
-			uint32_t* dp = (uint32_t*)descp->data;
+			uint8_t* dp = (uint8_t*)descp->data;
 			uint32_t length = wLength > descp->size ? descp->size : wLength;
 			
-			while(length > 64) {
-				write(0, dp, 64);
-				dp += 16;
-				length -= 64;
-				
-				while(!ep_ready(0));
-			}
-			
-			write(0, dp, length);
+			DATA_IN.buffer = dp;
+			DATA_IN.buffer_len = length;
+			submit_transfer(DATA_IN);
 			
 			return true;
 		}
 		
 		bool set_address(uint16_t wValue, uint16_t wIndex, uint16_t wLength) {
 			hw_set_address(wValue);
-			write(0, 0, 0);
+			submit_transfer(STATUS_IN);
 			return true;
 		}
 		
@@ -132,7 +164,7 @@ class USB_generic {
 				return false;
 			}
 			
-			write(0, 0, 0);
+			submit_transfer(STATUS_IN);
 			return true;
 		}
 		
@@ -177,7 +209,7 @@ class USB_generic {
 			// SET_INTERFACE
 			if(bmRequestType == 0x01 && bRequest == 0x0b) {
 				// TODO: Don't ignore this request.
-				write(0, nullptr, 0);
+				submit_transfer(STATUS_IN);
 				return;
 			}
 			
