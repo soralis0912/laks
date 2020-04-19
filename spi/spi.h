@@ -33,6 +33,16 @@ class SPI_t {
 			
 			return reg.DR8;
 		}
+		
+		uint16_t transfer16(uint16_t out = 0) {
+			reg.DR = (out << 8 & 0xFF00) | (out >> 8 & 0xFF);
+			
+			while(!(reg.SR & (0x01))) {
+				Thread::yield();
+			}
+
+			return reg.DR;
+		}
 };
 
 #if defined(STM32F1)
