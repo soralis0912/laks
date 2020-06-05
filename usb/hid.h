@@ -84,7 +84,8 @@ constexpr HID_Item<uint16_t> usage_page(uint16_t page) {
 namespace DesktopUsage {
 	enum _8 : uint8_t {
 		Undefined,
-		Gamepad = 0x05,
+		Joystick = 0x04,
+		Gamepad,
 		Keyboard,
 		X = 0x30,
 		Y,
@@ -152,6 +153,28 @@ constexpr HID_Item<uint8_t> feature(uint8_t x) {
 
 constexpr HID_Item<uint8_t> report_id(uint8_t id) {
 	return hid_item(0x84, id);
+}
+
+template <typename... R>
+constexpr auto joystick(R... r) -> decltype(
+    pack(
+        usage_page(UsagePage::Desktop),
+        usage(DesktopUsage::Joystick),
+        collection(Collection::Application,
+                   collection(Collection::Physical,
+                              r...
+                       )
+            )
+        )) {
+    return pack(
+        usage_page(UsagePage::Desktop),
+        usage(DesktopUsage::Joystick),
+        collection(Collection::Application,
+                   collection(Collection::Physical,
+                              r...
+                       )
+            )
+        );
 }
 
 template <typename... R>
