@@ -87,6 +87,7 @@ namespace DesktopUsage {
 		Joystick = 0x04,
 		Gamepad,
 		Keyboard,
+		KeyCodes,
 		X = 0x30,
 		Y,
 		Z,
