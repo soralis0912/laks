@@ -140,6 +140,10 @@ constexpr HID_Item<uint8_t> report_size(uint8_t x) {
 	return hid_item(0x74, x);
 }
 
+constexpr HID_Item<uint8_t> string_index(uint8_t x) {
+	return hid_item(0x78, x);
+}
+
 constexpr HID_Item<uint8_t> input(uint8_t x) {
 	return hid_item(0x80, x);
 }
