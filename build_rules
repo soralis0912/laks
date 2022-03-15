@@ -71,6 +71,8 @@ def select_stm32(env, variant):
 		env['LINK_SCRIPT'] = {
 			'b': 'stm32_f303_b.ld',
 			'c': 'stm32_f303_c.ld',
+			'd': 'stm32_f303_d.ld',
+			'e': 'stm32_f303_e.ld',
 		}[flash]
 	
 	elif family == 'f373':
